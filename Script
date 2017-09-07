@@ -72,7 +72,7 @@ Master_Data %>%
   theme_tq() +
   theme(legend.position="none")
   
-  ![Daily Prices](C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis")
+  ![daily_prices](https://user-images.githubusercontent.com/19295408/30145742-1e12e8cc-93b1-11e7-80b7-767a574fc9d2.png)
 
 ### Weekly price to find the pattern
 
