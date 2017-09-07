@@ -71,6 +71,8 @@ Master_Data %>%
   scale_color_tq() +
   theme_tq() +
   theme(legend.position="none")
+  
+  ![Daily Prices](C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis")
 
 ### Weekly price to find the pattern
 
