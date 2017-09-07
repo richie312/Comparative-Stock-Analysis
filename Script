@@ -206,3 +206,18 @@ Master_Data_Trade%>%ggplot(aes(x=Trade_qty,y=Close_Mean,color=Stock))+
         plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
   theme(legend.position="none")
 
+#### Prediction using Tidy Verse package using TS and then sweep package  [http://www.business-science.io/code-tools/2017/07/09/sweep-0-1-0.html]
+
+## Extract the individual stock from the group and convert it to TS
+
+Master_Data_TS<-Master_Data%>%
+tibble::as_tibble() %>%
+  group_by(Stock)
+  
+Master_Data_TS_ICICI<-filter(Master_Data_TS,Stock=="ICICI")%>%select(Date,Close)%>%as.data.frame(Master_Data_TS_ICICI)
+Master_Data_TS_ICICI<-Master_Data_TS_ICICI[ , !(names(Master_Data_TS_ICICI) %in% "Stock")]
+
+ICICI_TS<-ts(Master_Data_TS_ICICI,start=2016,frequency=1)
+
+ICICI_TS<-Master_Data_TS_ICICI%>%tk_ts(start = 2017, freq = 1, silent = TRUE)
+
