@@ -1,0 +1,182 @@
+## Set the working directory
+setwd("C:/Users/ACER PC/Documents/R_Projects/Bank_Stock_Comparative_Analysis")
+# Call the necessary packages
+library(Quandl)
+library(tidyverse)
+library(ggplot2)
+library(tidyquant)
+
+## Setup the Quandl Free Acount and API Key
+
+Quandl.api_key("xRPW5yp-5pmJCQZqgNVN")
+
+
+##Download the NSE Code from the below code
+
+Quandl.database.bulk_download_to_file("NSE", "./NSE.zip")
+
+## Download the data Set
+ICICI = Quandl("NSE/ICICIBANK",collapse="daily",start_date="2016-09-01",type="raw")
+PNB= Quandl("NSE/PNB",collapse="daily",start_date="2016-09-01",type="raw")
+Axis=Quandl("NSE/AXISBANK",collapse="daily",start_date="2016-09-01",type="raw")
+Canara=Quandl("NSE/CANBK",collapse="daily",start_date="2016-09-01",type="raw")
+BOB=Quandl("NSE/BANKBARODA",collapse="daily",start_date="2016-09-01",type="raw")
+SBI=Quandl("NSE/SBIN",collapse="daily",start_date="2016-09-01",type="raw")
+
+## Add another ("Stock") coloumn in Datasets 
+
+ICICI<-cbind(ICICI,Stock="")
+PNB<-cbind(PNB,Stock="")
+Axis<-cbind(Axis,Stock="")
+SBI<-cbind(SBI,Stock="")
+Canara<-cbind(Canara,Stock="")
+BOB<-cbind(BOB,Stock="")
+
+## Paste the stock name in stock coloumn
+
+ICICI$Stock<-paste(ICICI$Stock,"ICICI",sep="")
+PNB$Stock<-paste(PNB$Stock,"PNB",sep="")
+Axis$Stock<-paste(Axis$Stock,"Axis",sep="")
+SBI$Stock<-paste(SBI$Stock,"SBI",sep="")
+Canara$Stock<-paste(Canara$Stock,"Canara",sep="")
+BOB$Stock<-paste(BOB$Stock,"BOB",sep="")
+
+
+## Consolidate under one dataset
+
+Master_Data<-rbind(ICICI,PNB,Axis,SBI,Canara,BOB)
+
+##Check the format of date in Dataset
+
+ICICI$Date[1:10]
+PNB$Date[1:10]
+Axis$Date[1:10]
+SBI$Date[1:10]
+Canara$Date[1:10]
+BOB$Date[1:10]
+
+## Group the Data with tidyverse
+
+Master_Data<-Master_Data%>%
+  tibble::as_tibble() %>%
+  group_by(Stock)
+
+## Visualisation in ggplot2 ("Comparative Visulisation of Close Price listed on NSE)
+
+Master_Data %>%
+  ggplot(aes(x = Date, y = Close, color = Stock)) +
+  geom_point() +
+  labs(title = "Bank Stock Daily Prices", x = "") +
+  facet_wrap(~ Stock, ncol = 3, scale = "free_y") +
+  scale_color_tq() +
+  theme_tq() +
+  theme(legend.position="none")
+
+### Weekly price to find the pattern
+
+Master_Data_week <- Master_Data %>%
+  tq_transmute(
+    select     = Close,
+    mutate_fun = apply.weekly, 
+    FUN        = mean,
+    na.rm      = TRUE,
+    col_rename = "Close_Mean"
+  )
+Master_Data_week
+
+## Visualisation of Stock Price on Weekly Basis
+
+Master_Data_week%>%ggplot(aes(x=Date,y=Close_Mean,color=Stock))+
+  geom_point()+
+  geom_smooth(method = "loess")+
+  labs(title="Weekly Prices",x="Week")+
+  facet_wrap(~Stock,ncol=3,scale="free_y")+
+  scale_color_tq()+
+  theme_tq()+
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))+
+theme(legend.position="none")
+
+## Arrange
+
+grid.arrange(plot_ICICI,plot_PNB,plot_Axis,
+             ncol = 2, nrow = 2)
+
+## Distribution of Deviation from Open Price (High Price-Open Price) weekly basis
+
+Master_Data_High<-Master_Data%>%mutate(Dev_High=High-Open)
+Master_Data_Low<-Master_Data%>%mutate(Dev_Low=Open-Low)
+
+## Deviation from High Price
+
+Master_Data_High_Week <- Master_Data_High %>%
+  tq_transmute(
+    select     = Dev_High,
+    mutate_fun = apply.weekly, 
+    FUN        = mean,
+    na.rm      = TRUE,
+    col_rename = "Dev_High_Mean"
+  )
+
+## Density Distribution of Deviation of High Price from Open Price (Weekly Basis)
+
+Master_Data_High_Week%>%ggplot(aes(x=Dev_High_Mean,color=Stock))+
+  geom_density()+
+  labs(title="Weekly Deviation from Open Price",x="Week")+
+  facet_wrap(~Stock,ncol=3,scale="free_y")+
+  scale_color_tq()+
+  theme_tq()+
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))+
+theme(legend.position="none")
+
+## Deviation from Low Price
+
+Master_Data_Low_Week<-Master_Data_Low%>%
+	tq_transmute(
+		select 	= Dev_Low,
+		mutate_fun = apply.weekly,
+		FUN = mean,
+		na.rm = TRUE,
+		col_rename = "Dev_Low_Mean"
+	)
+
+## Density Distribution of Deviation of High Price from Open Price (Weekly Basis)
+
+Master_Data_High_Week%>%ggplot(aes(x=Dev_High_Mean,color=Stock))+
+  geom_dotplot(binwidth=0.75,aes(fill=Stock))+
+  xlim(0,10)+
+  scale_fill_manual(values=c("#999999", "#E69F00","#CC9933","#99FF00","#CC3399","#FF9933"))+
+  labs(title="Distribution of Weekly Deviation from Open Price",x="Weekly Mean Deviation")+
+  facet_wrap(~Stock,ncol=3,scale="free_y")+
+  scale_color_tq(values=c("#999999"))+
+  theme_tq()+
+  theme(panel.border = element_blank(),
+	panel.grid.major = element_line(colour = "grey61", size = 0.5, linetype = "dotted"),
+	panel.grid.minor = element_blank(),
+	axis.line=element_line(colour="black"),
+	plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
+  theme(legend.position="none")
+
+## Distribution of Deviation of High Price from Open Price (Weekly Basis)
+
+Master_Data_Low_Week%>%ggplot(aes(x=Dev_Low_Mean,color=Stock))+
+  geom_dotplot(binwidth=0.75,aes(fill=Stock))+
+  xlim(0,10)+
+  scale_fill_manual(values=c("#999999", "#E69F00","#CC9933","#99FF00","#CC3399","#FF9933"))+
+  labs(title="Distribution of Weekly Deviation from Open Price",x="Weekly Mean Deviation")+
+  facet_wrap(~Stock,ncol=3,scale="free_y")+
+  scale_color_tq(values=c("#999999"))+
+  theme_tq()+
+  theme(panel.border = element_blank(),
+	panel.grid.major = element_line(colour = "grey61", size = 0.5, linetype = "dotted"),
+	panel.grid.minor = element_blank(),
+	axis.line=element_line(colour="black"),
+	plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
+  theme(legend.position="none")
+
+## TIME SERIES ANALYSIS
+
+Master_Data_week$Date<-as.Date(as.character(Master_Data_week$Date),format="%Y-%m-%d")
+
+Master_Data_TS<-as.ts(Master_Data_week,start=2016,End=2017,frequency=12)
