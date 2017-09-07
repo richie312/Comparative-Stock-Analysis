@@ -175,8 +175,30 @@ Master_Data_Low_Week%>%ggplot(aes(x=Dev_Low_Mean,color=Stock))+
 	plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
   theme(legend.position="none")
 
-## TIME SERIES ANALYSIS
+## Total Traded Quantity vs Close Price
 
-Master_Data_week$Date<-as.Date(as.character(Master_Data_week$Date),format="%Y-%m-%d")
+Master_Data_Trade<-Master_Data%>%
+  tq_transmute(
+    select 	= c(`Total Trade Quantity`,Close),
+    mutate_fun = apply.weekly,
+    FUN = mean,
+    na.rm = TRUE,
+    col_rename = c("Trade_qty","Close_Mean")
+  )
 
-Master_Data_TS<-as.ts(Master_Data_week,start=2016,End=2017,frequency=12)
+## Visualisation with ggplot
+
+Master_Data_Trade%>%ggplot(aes(x=Trade_qty,y=Close_Mean,color=Stock))+
+  geom_smooth(method='loess')+
+  xlim(0,4000)+
+  labs(title="Close Price vs Traded Quantity",x="Traded Qty in thousands",y="Weekly Close Price")+
+  facet_wrap(~Stock,ncol=3,scale="free_y")+
+  scale_color_tq()+
+  theme_tq()+
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line=element_line(colour="black"),
+        plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
+  theme(legend.position="none")
+
