@@ -10,7 +10,6 @@ library(tidyquant)
 
 Quandl.api_key("xRPW5yp-5pmJCQZqgNVN")
 
-
 ##Download the NSE Code from the below code
 
 Quandl.database.bulk_download_to_file("NSE", "./NSE.zip")
@@ -66,13 +65,16 @@ Master_Data<-Master_Data%>%
 Master_Data %>%
   ggplot(aes(x = Date, y = Close, color = Stock)) +
   geom_point() +
-  labs(title = "Bank Stock Daily Prices", x = "") +
+  labs(title = "Daily Close Price", x = "Month",y="Close Price") +
   facet_wrap(~ Stock, ncol = 3, scale = "free_y") +
-  scale_color_tq() +
+  scale_fill_tq(fill="green4",theme="light") +
   theme_tq() +
+  theme(panel.border = element_blank(), 
+  	panel.grid.major = element_blank,
+	panel.grid.minor = element_blank(),
+	plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
+        axis.line = element_line(colour = "black"))+
   theme(legend.position="none")
-  
-  ![daily_prices](https://user-images.githubusercontent.com/19295408/30145742-1e12e8cc-93b1-11e7-80b7-767a574fc9d2.png)
 
 ### Weekly price to find the pattern
 
