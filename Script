@@ -5,6 +5,8 @@ library(Quandl)
 library(tidyverse)
 library(ggplot2)
 library(tidyquant)
+library(forcats)
+library(timetk)
 
 ## Setup the Quandl Free Acount and API Key
 
@@ -206,8 +208,84 @@ Master_Data_Trade%>%ggplot(aes(x=Trade_qty,y=Close_Mean,color=Stock))+
         plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
   theme(legend.position="none")
 
-#### Prediction using Tidy Verse package using TS and then sweep package  [http://www.business-science.io/code-tools/2017/07/09/sweep-0-1-0.html]
+## Autocorrelation (ACF) lags with tidyverse.
 
+k <- 1:28
+col_names <- paste0("lag_", k)
+
+Master_Data_lags<-Master_Data%>%
+tibble::as_tibble() %>%
+  group_by(Stock)
+  
+## Only Select Columns "Date" and "Close" from hte master data frame.
+	
+# Apply lag.xts function using tq_mutate
+
+Master_Data_lags<-Master_Data_lags%>%
+tq_mutate(
+	select = Close,
+	mutate_fun = lag.xts,
+	k=1:28,
+	col_rename=col_names
+	)
+# Calculate the autocorrelations and 95% cutoffs
+
+Master_Data_AutoCorrelations<-Master_Data_lags %>%
+    gather(key = "lag", value = "lag_value", -c(Stock,Date, Close)) %>%
+    mutate(lag = str_sub(lag, start = 5) %>% as.numeric) %>%
+    group_by(Stock, lag) %>%
+    summarize(
+        cor = cor(x = Close, y = lag_value, use = "pairwise.complete.obs"),
+        cutoff_upper = 2/(n())^0.5,
+        cutoff_lower = -2/(n())^0.5
+        )
+
+## Visualisation of Autocorrelation: ACF Plot
+
+Master_Data_AutoCorrelations %>%
+    ggplot(aes(x = lag, y = cor, color = Stock, group = Stock)) +
+    # Add horizontal line a y=0
+    geom_hline(yintercept = 0) +
+    # Plot autocorrelations
+    geom_point(size = 2) +
+    geom_segment(aes(xend = lag, yend = 0), size = 1) +
+    # Add cutoffs
+    geom_line(aes(y = cutoff_upper), color = "blue", linetype = 2) +
+    geom_line(aes(y = cutoff_lower), color = "blue", linetype = 2) +
+    # Add facets
+    facet_wrap(~ Stock, ncol = 3) +
+    # Aesthetics
+    expand_limits(y = c(-1, 1)) +
+    scale_color_tq() +
+    theme_tq() +
+    labs(
+        title = paste0("Tidyverse ACF Plot: Lags ", rlang::expr_text(k)),
+        subtitle = "Appears to be a weekly pattern",
+        x = "Lags"
+    ) +
+    theme(
+        legend.position = "none",
+        axis.text.x = element_text(angle = 45, hjust = 1)
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Prediction using Tidy Verse package using TS and then sweep package  [http://www.business-science.io/code-tools/2017/07/09/sweep-0-1-0.html]
 ## Extract the individual stock from the group and convert it to TS
 
 Master_Data_TS<-Master_Data%>%
