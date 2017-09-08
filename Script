@@ -210,7 +210,7 @@ Master_Data_Trade%>%ggplot(aes(x=Trade_qty,y=Close_Mean,color=Stock))+
 
 ## Autocorrelation (ACF) lags with tidyverse.
 
-k <- 1:28
+k <- 1:180
 col_names <- paste0("lag_", k)
 
 Master_Data_lags<-Master_Data%>%
@@ -225,7 +225,7 @@ Master_Data_lags<-Master_Data_lags%>%
 tq_mutate(
 	select = Close,
 	mutate_fun = lag.xts,
-	k=1:28,
+	k=1:180,
 	col_rename=col_names
 	)
 # Calculate the autocorrelations and 95% cutoffs
@@ -268,6 +268,7 @@ Master_Data_AutoCorrelations %>%
         axis.text.x = element_text(angle = 45, hjust = 1)
     )
 
+              #######################################  End of Part -1 ###############################################
 
 
 
