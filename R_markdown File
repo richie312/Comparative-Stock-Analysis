@@ -1,6 +1,13 @@
-# Comparative Stock Analysis Volume - I
+---
+title: "Comparative Stock Analysis"
+author: "Aritra Chatterjee"
+date: "9 September 2017"
+output: html_document
+---
+## Comparative Stock Analysis Volume - I
 
-**Introduction**
+###Introduction
+
 In today's article we will analyse stock market in banking segment. We will analyse the bank stocks which are listed in [NSE India](
 https://www.nseindia.com/live_market/dynaContent/live_watch/pre_open_market/pre_open_market.htm). Objective is to find the trend (Seasonal)
 or cyclic) /pattern in banking stocks. In our comparative analysis we will use several packages and the primary focus will be on *tidy verse*
@@ -10,7 +17,7 @@ similar operation on multiple groups at a time, hence reducing the code length a
 Additional information and tutorial is provided on "Qunadl" package. This focuses on API Key, database code search using quandl, and
 finally how to directly download the data from R Console.
 
-## Outline
+### Outline
 
 The study is divided in two main groups,
 
@@ -80,6 +87,19 @@ In our analysis, we have selected following banks
 We have selected these banks as they are in the price band of Rs 200 to Rs 500. We will use the following codes to get the data into 
 R console,
 
+### call the necessary package
+
+```{r,eval=FALSE}
+library(Quandl)
+library(tidyverse)
+library(ggplot2)
+library(tidyquant)
+library(timetk)
+library(forcats)
+library(stringr)
+library(gganimate)
+library(plyr)
+```
 ### Code Break up
 
 Quandl(Code="NSE/---",collapse="---",start_date="----",type="...")
@@ -90,8 +110,8 @@ Quandl(Code="NSE/---",collapse="---",start_date="----",type="...")
 * type          Type  of  data  returned  specified  as  string.   Can  be  ’raw’,  ’ts’,  ’zoo’,  ’xts’  or ’timeSeries’
 
 
-```
-## Setup the Quandl Free Acount and API Key, Please copy and paste the API key in order to authinticate
+```{r,eval=FALSE}
+## Setup the Quandl Free Acount and API Key, Please copy and paste the API key in order to #authinticate
 
 Quandl.api_key("xRPW5yp-5pmJCQZqgNVN")
 
@@ -125,26 +145,20 @@ BOB$Stock<-paste(BOB$Stock,"BOB",sep="")
 
 Master_Data<-rbind(ICICI,PNB,Axis,SBI,Canara,BOB)
 
-##Check the format of date in Dataset
-
-ICICI$Date[1:10]
-PNB$Date[1:10]
-Axis$Date[1:10]
-SBI$Date[1:10]
-Canara$Date[1:10]
-BOB$Date[1:10]
 ```
 In the above code, we've downloaded the data, added a column "Stock" for the stock indentifier, then we pasted the respective stock
 name in the downlaoded dataset. At last we checked the date format for each and every stock, which is in the "y-m-d" format.
 
-### "tidyVerse" to group the date by converting the dataset in tibble
+### Tidyverse Package
 
-Introduction of tidyverse package to cran has been major contribution to R community. [Hadley Wickham](http://hadley.nz/) 
-is the author of this contribution and he has been also the author of popular packages like ggplot, dplyr and many others. 
+####Introduction of tidyverse package by Hadley Wickham to cran has been major contribution to R community. [Hadley Wickham](http://hadley.nz/) 
 
-Image of Hadley
+He is the author of this contribution and he had major contributor in R-Community. He is the creator pf packages like ggplot, dplyr and many others. 
 
-Please click [here](https://cran.r-project.org/web/packages/tidyverse/tidyverse.pdf) to get the tidyverse R-documentation.
+<img src="C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis\hadley-wickham.jpg" width="500" height="300">
+
+Please click [here](https://cran.r-project.org/web/packages/tidyverse/tidyverse.pdf)
+to get the tidyverse R-documentation.
 
 In this section, we will first group the master dataframe according by Stock. Then we will see the Daily price pattern for Stocks
 using ggplot package.
@@ -152,43 +166,61 @@ using ggplot package.
 We have heavily manipulated the theme section of ggplot to get the desired plot. More information on plot is provided 
 [here](https://www.rdocumentation.org/packages/ggplot2/versions/2.2.1/topics/theme).
 
-```
-## Group the Data with tidyverse
-
-Master_Data<-Master_Data%>%
-  tibble::as_tibble() %>%
-  group_by(Stock)
-
+```{r,eval=FALSE}
 ## Visualisation in ggplot2 ("Comparative Visulisation of Close Price listed on NSE)
+## Convert the dates into character in order to split the coloumn into "Y" "m" "dd"" columns
+Master_Data$Date<-as.character(Master_Data$Date)
 
-Master_Data %>%
-  ggplot(aes(x = Date, y = Close, color = Stock)) +
-  geom_point() +
-  labs(title = "Daily Close Price", x = "Month",y="Close Price") +
-  facet_wrap(~ Stock, ncol = 3, scale = "free_y") +
-  scale_fill_tq(fill="green4",theme="light") +
-  theme_tq() +
-  theme(panel.border = element_blank(), 
-  	panel.grid.major = element_blank,
-	panel.grid.minor = element_blank(),
-	plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
-        axis.line = element_line(colour = "black"))+
+## Split the date and create a list for the same
+
+list<-strsplit(Master_Data$Date,"-")
+
+## Convert the list into dataframe
+library(plyr)
+Master_Date1<-ldply(list)
+colnames(Master_Date1)<-c("Year","Month","Day")
+
+## Column bind with the main dataframe
+Master_Data<-cbind(Master_Data,Master_Date1)
+names(Master_Data)
+
+## Change the scale for Traded Quantity
+
+Master_Data$`Total Trade Quantity`<-Master_Data$`Total Trade Quantity`/100000
+
+## Add a new column to dataframe for month abv as "Abv" using mutate function from dplyr
+
+Master_Data$Month<-as.factor(Master_Data$Month)
+Master_Data<-Master_Data%>%mutate(Abv = month.abb[Month])
+name<-factor(c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+
+Master_Data$Abv<-factor(Master_Data$Abv,levels=name)
+
+## Visualisation 
+P<- ggplot(Master_Data,aes(factor(Stock),Close,color=Stock,frame=Abv)) +
+  geom_point(aes(size=5)) +
+  ylim(0,1000)+
+  labs(title = "Bank Stock Daily Prices", x = "Close Price", y= "Banks") +
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line=element_line(colour="black"),
+        plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
   theme(legend.position="none")
-```
-```
-R PLot
 
-````
+P1<-gganimate(P,'Price_Range.gif',ani.width=600,ani.height=400,interval=1)
 
-We have an idea of trend of the stock price, but not much is clear from the daily prices because of the presence of outlier.
+```
+![Monthly Prices](C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis\Price_Range.gif)
+
+We have an idea of trend of the stock price, but not much is clear from the Monthly prices. Axis Bank share price improved in september and
+stayed at Rs750 for a month. whereas all other Banks were consistent and did not show much of volatility.
+
 In next section we will see the weekly pattern by using *tidyquant* package.
 
-## Tidyquant Package
-
-Image of Matt Dancho
-
-Matt Dancho is the creator of the package "tidyquant", please check his page [here](http://www.business-science.io/serve/about.html)
-
+### Tidyquant Package
+####Matt Dancho is the creator of the package "tidyquant", please check his page [here](http://www.business-science.io/serve/about.html)
+<img src="C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis\Matt dancho.jpg" width="300" height="300">
 
 ### Density Distribution of Deviation of High Price from Open Price (Weekly Basis)
 
@@ -202,7 +234,7 @@ tq_transmute_fun_options()
 
 ```
 
-Image of transmute
+![transmute_fun_options](C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis\transmute_img.png)
 
 CODE EXPLANATION
 
@@ -244,10 +276,7 @@ Master_Data_Low_Week<-Master_Data_Low%>%
 		na.rm = TRUE,
 		col_rename = "Dev_Low_Mean"
 	)
-
-## Density Distribution of Deviation of High Price from Open Price (Weekly Basis)
-
-Master_Data_High_Week%>%ggplot(aes(x=Dev_High_Mean,color=Stock))+
+Master_Data_Low_Week%>%ggplot(aes(x=Dev_Low_Mean,color=Stock))+
   geom_dotplot(binwidth=0.75,aes(fill=Stock))+
   xlim(0,10)+
   scale_fill_manual(values=c("#999999", "#E69F00","#CC9933","#99FF00","#CC3399","#FF9933"))+
@@ -261,6 +290,95 @@ Master_Data_High_Week%>%ggplot(aes(x=Dev_High_Mean,color=Stock))+
 	axis.line=element_line(colour="black"),
 	plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
   theme(legend.position="none")
-```
+
+## Total Traded Quantity vs Close Price
+
+Master_Data_Trade<-Master_Data%>%
+  tq_transmute(
+    select 	= c(`Total Trade Quantity`,Close),
+    mutate_fun = apply.weekly,
+    FUN = mean,
+    na.rm = TRUE,
+    col_rename = c("Trade_qty","Close_Mean")
+  )
+
+## Visualisation with ggplot
+
+Master_Data_Trade%>%ggplot(aes(x=Trade_qty,y=Close_Mean,color=Stock))+
+  geom_smooth(method='loess')+
+  xlim(0,4000)+
+  labs(title="Close Price vs Traded Quantity",x="Traded Qty in thousands",y="Weekly Close Price")+
+  facet_wrap(~Stock,ncol=3,scale="free_y")+
+  scale_color_tq()+
+  theme_tq()+
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line=element_line(colour="black"),
+        plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
+  theme(legend.position="none")
+
+## Autocorrelation (ACF) lags with tidyverse.
+
+k <- 1:180
+col_names <- paste0("lag_", k)
+
+Master_Data_lags<-Master_Data%>%
+tibble::as_tibble() %>%
+  group_by(Stock)
+  
+## Only Select Columns "Date" and "Close" from hte master data frame.
+	
+# Apply lag.xts function using tq_mutate
+
+Master_Data_lags<-Master_Data_lags%>%
+tq_mutate(
+	select = Close,
+	mutate_fun = lag.xts,
+	k=1:180,
+	col_rename=col_names
+	)
+# Calculate the autocorrelations and 95% cutoffs
+
+Master_Data_AutoCorrelations<-Master_Data_lags %>%
+    gather(key = "lag", value = "lag_value", -c(Stock,Date, Close)) %>%
+    mutate(lag = str_sub(lag, start = 5) %>% as.numeric) %>%
+    group_by(Stock, lag) %>%
+    summarize(
+        cor = cor(x = Close, y = lag_value, use = "pairwise.complete.obs"),
+        cutoff_upper = 2/(n())^0.5,
+        cutoff_lower = -2/(n())^0.5
+        )
+
+## Visualisation of Autocorrelation: ACF Plot
+
+Master_Data_AutoCorrelations %>%
+    ggplot(aes(x = lag, y = cor, color = Stock, group = Stock)) +
+    # Add horizontal line a y=0
+    geom_hline(yintercept = 0) +
+    # Plot autocorrelations
+    geom_point(size = 2) +
+    geom_segment(aes(xend = lag, yend = 0), size = 1) +
+    # Add cutoffs
+    geom_line(aes(y = cutoff_upper), color = "blue", linetype = 2) +
+    geom_line(aes(y = cutoff_lower), color = "blue", linetype = 2) +
+    # Add facets
+    facet_wrap(~ Stock, ncol = 3) +
+    # Aesthetics
+    expand_limits(y = c(-1, 1)) +
+    scale_color_tq() +
+    theme_tq() +
+    labs(
+        title = paste0("Tidyverse ACF Plot: Lags ", rlang::expr_text(k)),
+        subtitle = "Appears to be a weekly pattern",
+        x = "Lags"
+    ) +
+    theme(
+        legend.position = "none",
+        axis.text.x = element_text(angle = 45, hjust = 1)
+    )
+
+              #######################################  End of Part -1 ###############################################
+
 
 
