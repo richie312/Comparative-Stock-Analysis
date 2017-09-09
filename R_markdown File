@@ -100,6 +100,9 @@ library(stringr)
 library(gganimate)
 library(plyr)
 ```
+
+
+
 ### Code Break up
 
 Quandl(Code="NSE/---",collapse="---",start_date="----",type="...")
@@ -147,7 +150,7 @@ Master_Data<-rbind(ICICI,PNB,Axis,SBI,Canara,BOB)
 
 ```
 In the above code, we've downloaded the data, added a column "Stock" for the stock indentifier, then we pasted the respective stock
-name in the downlaoded dataset. At last we checked the date format for each and every stock, which is in the "y-m-d" format.
+name in the downlaoded dataset. At last we consolidated all stock data into one Master Data frame.
 
 ### Tidyverse Package
 
@@ -168,6 +171,7 @@ We have heavily manipulated the theme section of ggplot to get the desired plot.
 
 ```{r,eval=FALSE}
 ## Visualisation in ggplot2 ("Comparative Visulisation of Close Price listed on NSE)
+
 ## Convert the dates into character in order to split the coloumn into "Y" "m" "dd"" columns
 Master_Data$Date<-as.character(Master_Data$Date)
 
@@ -188,21 +192,17 @@ names(Master_Data)
 
 Master_Data$`Total Trade Quantity`<-Master_Data$`Total Trade Quantity`/100000
 
-## Add a new column to dataframe for month abv as "Abv" using mutate function from dplyr
+## Convert the Date to as.Date()
 
-Master_Data$Month<-as.factor(Master_Data$Month)
-Master_Data<-Master_Data%>%mutate(Abv = month.abb[Month])
-name<-factor(c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+Master_Data$Date<-as.Date(Master_Data$Date)
 
-Master_Data$Abv<-factor(Master_Data$Abv,levels=name)
-
-## Visualisation 
-P<- ggplot(Master_Data,aes(factor(Stock),Close,color=Stock,frame=Abv)) +
-  geom_point(aes(size=5)) +
+## Visualisation with Bubble Plot
+P<- ggplot(Master_Data,aes(factor(Stock),Close,color=Stock,frame=Month)) +
+  geom_jitter(aes(size = Close, colour=Stock, alpha=.02)) +
   ylim(0,1000)+
-  labs(title = "Bank Stock Daily Prices", x = "Close Price", y= "Banks") +
+  labs(title = "Bank Stock Monthly Prices", x = "Close Price", y= "Banks") +
   theme(panel.border = element_blank(),
-        panel.grid.major = element_blank(),
+        panel.grid.major = element_line(colour = "grey61", size = 0.5, linetype = "dotted"),
         panel.grid.minor = element_blank(),
         axis.line=element_line(colour="black"),
         plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
@@ -210,17 +210,45 @@ P<- ggplot(Master_Data,aes(factor(Stock),Close,color=Stock,frame=Abv)) +
 
 P1<-gganimate(P,'Price_Range.gif',ani.width=600,ani.height=400,interval=1)
 
+## Group By Stock
+
+Master_Data<-Master_Data%>%
+  tibble::as.tibble()%>%
+  group_by(Stock)
+
+## Visualisation for Daily Stock Prices
+
+Master_Data %>%
+  ggplot(aes(x = Date, y = Close, color = Stock)) +
+  geom_point() +
+  labs(title = "Daily Close Price", x = "Month",y="Close Price") +
+  facet_wrap(~ Stock, ncol = 3, scale = "free_y") +
+  scale_fill_tq(fill="green4",theme="light") +
+  theme_tq() +
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_line(colour = "grey61", size = 0.5, linetype = "dotted"),
+        panel.grid.minor = element_blank(),
+        axis.line=element_line(colour="black"),
+        plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"))+
+  theme(legend.position="none")
+
 ```
 ![Monthly Prices](C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis\Price_Range.gif)
+
+![Daily Stock Prices](C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis\Daily.close.jpg)
+
 
 We have an idea of trend of the stock price, but not much is clear from the Monthly prices. Axis Bank share price improved in september and
 stayed at Rs750 for a month. whereas all other Banks were consistent and did not show much of volatility.
 
 In next section we will see the weekly pattern by using *tidyquant* package.
 
-### Tidyquant Package
-####Matt Dancho is the creator of the package "tidyquant", please check his page [here](http://www.business-science.io/serve/about.html)
+## Tidyquant Package
+
 <img src="C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis\Matt dancho.jpg" width="300" height="300">
+
+Matt Dancho is the creator of the package "tidyquant", please check his page [here](http://www.business-science.io/serve/about.html)
+
 
 ### Density Distribution of Deviation of High Price from Open Price (Weekly Basis)
 
@@ -235,6 +263,7 @@ tq_transmute_fun_options()
 ```
 
 ![transmute_fun_options](C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis\transmute_img.png)
+
 
 CODE EXPLANATION
 
