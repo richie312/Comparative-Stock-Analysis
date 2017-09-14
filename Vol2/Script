@@ -1,0 +1,21 @@
+## call the necessary packages
+library(tidyverse)
+library(data.table)
+
+## Read the file
+
+ICICI<-read.csv("ICICI.csv",stringsAsFactors=FALSE)
+ICICI_1<-ICICI%>%select("Date","Close","Total.Trade.Quantity")
+colnames(ICICI_1)<-c("Date","Close","TTQ")
+
+## Change the scale of Total traded Quantity
+
+ICICI_1$TTQ<-ICICI_1$TTQ/100000
+
+## Get the total trade difference from last day
+ICICI_1<-ICICI_1%>%mutate(TDiff = ICICI_1$TDiff-lag(ICICI_1$TDiff))
+Close.diff<-mutate(CDiff=ICICI_1$Close-lag(ICICI_1$Close))
+
+cbind(Close.diff,ICICI_1$TDiff)
+
+cor(Close.diff,ICICI_1$TDiff,use='complete.obs')
