@@ -1,21 +1,41 @@
 ## call the necessary packages
 library(tidyverse)
 library(data.table)
-
+library(tidyquant)
+library(TTR)
 ## Read the file
 
 ICICI<-read.csv("ICICI.csv",stringsAsFactors=FALSE)
-ICICI_1<-ICICI%>%select("Date","Close","Total.Trade.Quantity")
-colnames(ICICI_1)<-c("Date","Close","TTQ")
 
 ## Change the scale of Total traded Quantity
 
 ICICI_1$TTQ<-ICICI_1$TTQ/100000
 
-## Get the total trade difference from last day
-ICICI_1<-ICICI_1%>%mutate(TDiff = ICICI_1$TDiff-lag(ICICI_1$TDiff))
-Close.diff<-mutate(CDiff=ICICI_1$Close-lag(ICICI_1$Close))
+## Coerce the Date variable into as.Date from character
+ICICI$Date<-as.Date(ICICI$Date)
 
-cbind(Close.diff,ICICI_1$TDiff)
+#########################   Bollinger Band  ############################
 
-cor(Close.diff,ICICI_1$TDiff,use='complete.obs')
+## Visualisation of Bollinger Band
+
+ICICI%>%ggplot(aes(x=Date,y=Close))+
+    geom_line()+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, n = 50)+
+    coord_x_date(xlim = c(today() - years(1), today()),ylim = c(200,330), expand = TRUE)+
+    labs(title = "Bollinger Band", x = "Date",y="Price") +
+  theme(panel.border = element_blank(), 
+  	    panel.grid.major = element_blank(),
+	      panel.grid.minor = element_blank(),
+	      plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
+        axis.line = element_line(colour = "black"))+
+theme(legend.position="none")
+
+
+
+## Urls
+
+https://www.r-bloggers.com/tidyquant-0-3-0-ggplot2-enhancements-real-time-data-and-more-2/
+
+
+
+
