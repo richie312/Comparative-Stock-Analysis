@@ -55,8 +55,9 @@ group_by(Stock)
 
 Master_Data%>%ggplot(aes(x=Date,y=Close))+
     geom_candlestick(aes(open = Open, close = Close, high = High, low = Low))+
-    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, n = 20)+
-    coord_x_date(xlim = c(start, end),ylim = c(200,330), expand = TRUE)+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, n = 20,size=1)+
+    coord_x_date(xlim = c(start, end), expand = TRUE)+
+    facet_wrap(~ Stock, scales = "free_y")+
     labs(title = "Bollinger Band", x = "Date",y="Price") +
   theme(panel.border = element_blank(), 
   	    panel.grid.major = element_blank(),
@@ -65,11 +66,6 @@ Master_Data%>%ggplot(aes(x=Date,y=Close))+
         axis.line = element_line(colour = "black"))+
 theme(legend.position="none")
 
-
-
-## Urls
-
-https://www.r-bloggers.com/tidyquant-0-3-0-ggplot2-enhancements-real-time-data-and-more-2/
 
 
 
