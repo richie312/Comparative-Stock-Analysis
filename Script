@@ -72,7 +72,7 @@ Master_Data %>%
   scale_fill_tq(fill="green4",theme="light") +
   theme_tq() +
   theme(panel.border = element_blank(), 
-  	panel.grid.major = element_blank,
+  	panel.grid.major = element_blank(),
 	panel.grid.minor = element_blank(),
 	plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
         axis.line = element_line(colour = "black"))+
