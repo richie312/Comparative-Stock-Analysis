@@ -53,8 +53,10 @@ group_by(Stock)
 
 ## Visualisation of BBand in ggplot2 
 
-Master_Data%>%ggplot(aes(x=Date,y=Close))+
-    geom_line(size=1)+
+ICAX<-c("ICICI","Axis")
+
+Master_Data%>%filter(Stock=="ICICI"|Stock="PNB")%>%ggplot(aes(x=Date,y=Close))+
+    geom_line()+
     geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=1)+
     coord_x_date(xlim = c(start, end), expand = TRUE)+
     facet_wrap(~ Stock, scales = "free_y")+
@@ -64,7 +66,6 @@ Master_Data%>%ggplot(aes(x=Date,y=Close))+
 	      panel.grid.minor = element_blank(),
 	      plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
         axis.line = element_line(colour = "black"))+
-	scale_fill_manual(values=c("#999999", "#E69F00","#CC9933","#99FF00","#CC3399","#FF9933"))+
 theme(legend.position="none")
 
 
