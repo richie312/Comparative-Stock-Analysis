@@ -1,18 +1,44 @@
 ## call the necessary packages
 library(tidyverse)
-library(data.table)
 library(tidyquant)
 library(TTR)
+
+
 ## Read the file
 
 ICICI<-read.csv("ICICI.csv",stringsAsFactors=FALSE)
+PNB<-read.csv("PNB.csv",stringsAsFactors=FALSE)
+Axis<-read.csv("Axis.csv",stringsAsFactors=FALSE)
+SBI<-read.csv("SBI.csv",stringsAsFactors=FALSE)
+Canara<-read.csv("Canara.csv",stringsAsFactors=FALSE)
+BOB<-read.csv("BOB.csv",stringsAsFactors=FALSE)
 
-## Change the scale of Total traded Quantity
+## Add another ("Stock") coloumn in Datasets 
 
-ICICI_1$TTQ<-ICICI_1$TTQ/100000
+ICICI<-cbind(ICICI,Stock="")
+PNB<-cbind(PNB,Stock="")
+Axis<-cbind(Axis,Stock="")
+SBI<-cbind(SBI,Stock="")
+Canara<-cbind(Canara,Stock="")
+BOB<-cbind(BOB,Stock="")
+
+## Paste the stock name in stock coloumn
+
+ICICI$Stock<-paste(ICICI$Stock,"ICICI",sep="")
+PNB$Stock<-paste(PNB$Stock,"PNB",sep="")
+Axis$Stock<-paste(Axis$Stock,"Axis",sep="")
+SBI$Stock<-paste(SBI$Stock,"SBI",sep="")
+Canara$Stock<-paste(Canara$Stock,"Canara",sep="")
+BOB$Stock<-paste(BOB$Stock,"BOB",sep="")
+
+
+## Consolidate under one dataset
+
+Master_Data<-rbind(ICICI,PNB,Axis,SBI,Canara,BOB)
 
 ## Coerce the Date variable into as.Date from character
-ICICI$Date<-as.Date(ICICI$Date)
+
+Master_Data$Date<-as.Date(Master_Data$Date)
 
 #########################   Bollinger Band  ############################
 
@@ -20,7 +46,14 @@ ICICI$Date<-as.Date(ICICI$Date)
 
 end<-ymd("2017-09-01")
 start<-ymd("2016-09-01")
-ICICI%>%ggplot(aes(x=Date,y=Close))+
+
+Master_Data<-Master_Data%>%
+  tibble::as_tibble() %>%
+group_by(Stock)
+
+## Visualisation of BBand in ggplot2 
+
+Master_Data%>%ggplot(aes(x=Date,y=Close))+
     geom_candlestick(aes(open = Open, close = Close, high = High, low = Low))+
     geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, n = 20)+
     coord_x_date(xlim = c(start, end),ylim = c(200,330), expand = TRUE)+
