@@ -2,6 +2,7 @@
 library(tidyverse)
 library(tidyquant)
 library(TTR)
+library (gridExtra)
 
 
 ## Read the file
@@ -55,7 +56,7 @@ group_by(Stock)
 
 ICAX<-c("ICICI","Axis")
 
-Master_Data%>%filter(Stock=="Canara"|Stock=="BOB")%>%ggplot(aes(x=Date,y=Close))+
+Plot1<-Master_Data%>%filter(Stock=="ICICI"|Stock=="PNB")%>%ggplot(aes(x=Date,y=Close))+
     geom_line()+
     geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=1)+
     coord_x_date(xlim = c(start, end), expand = TRUE)+
@@ -64,17 +65,50 @@ Master_Data%>%filter(Stock=="Canara"|Stock=="BOB")%>%ggplot(aes(x=Date,y=Close))
   theme(panel.border = element_blank(), 
   	    panel.grid.major = element_blank(),
 	      panel.grid.minor = element_blank(),
+	      panel.background = element_blank(),
 	      plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
         axis.line = element_line(colour = "black"))+
 theme(legend.position="none")
 
+Plot2<-Master_Data%>%filter(Stock=="Axis"|Stock=="SBI")%>%ggplot(aes(x=Date,y=Close))+
+    geom_line()+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=1)+
+    coord_x_date(xlim = c(start, end), expand = TRUE)+
+    facet_wrap(~ Stock, scales = "free_y")+
+    labs(title = "Bollinger Band", x = "Date",y="Price") +
+  theme(panel.border = element_blank(), 
+  	    panel.grid.major = element_blank(),
+	      panel.grid.minor = element_blank(),
+	      panel.background = element_blank(),
+	      plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
+        axis.line = element_line(colour = "black"))+
+theme(legend.position="none")
+
+Plot3<- Master_Data%>%filter(Stock=="Canara"|Stock=="BOB")%>%ggplot(aes(x=Date,y=Close))+
+    geom_line()+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=1)+
+    coord_x_date(xlim = c(start, end), expand = TRUE)+
+    facet_wrap(~ Stock, scales = "free_y")+
+    labs(title = "Bollinger Band", x = "Date",y="Price") +
+  theme(panel.border = element_blank(), 
+  	    panel.grid.major = element_blank(),
+	      panel.grid.minor = element_blank(),
+	      panel.background = element_blank(),
+	      plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
+        axis.line = element_line(colour = "black"))+
+theme(legend.position="none")
+
+## Plots
 
 
+grid.arrange(Plot1,Plot2,Plot3,ncol = 1, nrow = 3)
 
 
 #### Source 
 
 https://www.investoo.com/w-bottom-m-tops-strategy/
+
+http://traderhq.com/ultimate-guide-to-bollinger-bands/
 
 
 
