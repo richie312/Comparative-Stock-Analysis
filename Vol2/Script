@@ -1,9 +1,27 @@
+## Introduction of Bollinger Band
+	## History 
+	## Trading with the bollinger Bands
+		## Show uptrend with one example
+		## Show Downtrend with one example from the case study
+	## Signal	
+		## M-tops with one example
+		## W- Bottoms with one example
+	 
+	 ## Show the plots for six banks and also highlight the w-bottoms and M-tops
+	 	## Explanation must be provided for each plot.
+		
+## Prediction of Stock Prices using "timetk" package
+	
+
+
+
+
+
 ## call the necessary packages
 library(tidyverse)
 library(tidyquant)
 library(TTR)
 library (gridExtra)
-
 
 ## Read the file
 
