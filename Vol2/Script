@@ -75,48 +75,57 @@ group_by(Stock)
 ICAX<-c("ICICI","Axis")
 
 Plot1<-Master_Data%>%filter(Stock=="ICICI"|Stock=="PNB")%>%ggplot(aes(x=Date,y=Close))+
-    geom_line()+
-    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=1)+
+    geom_line(size=1)+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=0.75,
+		color_ma = "royalblue4", color_bands = "red1")+
     coord_x_date(xlim = c(start, end), expand = TRUE)+
     facet_wrap(~ Stock, scales = "free_y")+
     labs(title = "Bollinger Band", x = "Date",y="Price") +
-  theme(text = element_text(family = 'Gill Sans', color = "#444444")
-        ,panel.background = element_rect(fill = '#444B5A')
+  theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
+        ,panel.background = element_rect(fill = 'lightyellow')
         ,panel.grid.minor = element_blank(),
-        ,panel.grid.major = element_line(color = '#586174')
-        ,plot.title = element_text(size = 28)
+        ,panel.grid.major = element_blank()
+        ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
         ,axis.title = element_text(size = 18, color = '#555555')
-        ,axis.title.y = element_text(vjust = 1, angle = 0)
-        ,axis.title.x = element_text(hjust = 0)
+        ,axis.title.y = element_text(hjust=0.5,size=15)
+        ,axis.title.x = element_text(hjust = 0.5,size=15)
         ) +
 theme(legend.position="none")
 
 Plot2<-Master_Data%>%filter(Stock=="Axis"|Stock=="SBI")%>%ggplot(aes(x=Date,y=Close))+
-    geom_line()+
-    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=1)+
+    geom_line(size=1)+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=0.75,
+		color_ma = "royalblue4", color_bands = "red1")+
     coord_x_date(xlim = c(start, end), expand = TRUE)+
     facet_wrap(~ Stock, scales = "free_y")+
     labs(title = "Bollinger Band", x = "Date",y="Price") +
-  theme(panel.border = element_blank(), 
-  	    panel.grid.major = element_blank(),
-	      panel.grid.minor = element_blank(),
-	      panel.background = element_blank(),
-	      plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
-        axis.line = element_line(colour = "black"))+
+  theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
+        ,panel.background = element_rect(fill = 'lightyellow')
+        ,panel.grid.minor = element_blank(),
+        ,panel.grid.major = element_blank()
+        ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
+        ,axis.title = element_text(size = 18, color = '#555555')
+        ,axis.title.y = element_text(hjust=0.5,size=15)
+        ,axis.title.x = element_text(hjust = 0.5,size=15)
+        ) +
 theme(legend.position="none")
 
 Plot3<- Master_Data%>%filter(Stock=="Canara"|Stock=="BOB")%>%ggplot(aes(x=Date,y=Close))+
-    geom_line()+
-    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=1)+
+    geom_line(size=1)+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=0.75,
+		color_ma = "royalblue4", color_bands = "red1")+
     coord_x_date(xlim = c(start, end), expand = TRUE)+
     facet_wrap(~ Stock, scales = "free_y")+
     labs(title = "Bollinger Band", x = "Date",y="Price") +
-  theme(panel.border = element_blank(), 
-  	    panel.grid.major = element_blank(),
-	      panel.grid.minor = element_blank(),
-	      panel.background = element_blank(),
-	      plot.title = element_text(hjust = 0.5,size=18,colour="indianred4"),
-        axis.line = element_line(colour = "black"))+
+  theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
+        ,panel.background = element_rect(fill = 'lightyellow')
+        ,panel.grid.minor = element_blank(),
+        ,panel.grid.major = element_blank()
+        ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
+        ,axis.title = element_text(size = 18, color = '#555555')
+        ,axis.title.y = element_text(hjust=0.5,size=15)
+        ,axis.title.x = element_text(hjust = 0.5,size=15)
+        ) +
 theme(legend.position="none")
 
 ## Plots
