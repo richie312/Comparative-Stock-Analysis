@@ -202,8 +202,16 @@ theme(legend.position="none")
 <img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/Vol2/Images/ICICI_PNB.png" width="400" height="300">
 
 
-Explanation
+* 1. MTOP formed in Nov (Signalling downward trending).Prices declined  to a new low till January 2017.
+    
+* 2. Volatility for the ICICI stock over the epriod of 1 year was very high in october, 2016.
+     It was constant for the month of 3 months (march to may,2017) when the prices were in the range of Rs 265 to Rs 285.
 
+* 3. PNB Stock shows mutiple MTOPS over the period of 1 year followed by strong downward trend.
+
+* 4. PNB has high volatility, it shows erratic upward and downward movement through out the year.
+   It touches to a new low below RS 120 in Jan 2017 and reaches a new high RS 175 in the month of May, 2017.
+ 
 
 ```{eval=FALSE}
 Master_Data%>%filter(Stock=="Axis"|Stock=="SBI")%>%ggplot(aes(x=Date,y=Close))+
@@ -226,7 +234,17 @@ theme(legend.position="none")
 ```
 <img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/Vol2/Images/Axis_SBI.png" width="400" height="300">
 
-Explanation
+1. MTOP formed in Oct,2016(Signalling downward trending).Prices declined to a new low til January 2017 to RS 420 from a previous
+   high of Rs650 in sept, 2016. In 4 months time prices declined by Rs 230.
+
+2. Volatility for the ICICI stock was higher for 6 months till March,2017. But after March,
+   Prices were ranging from Rs 470 to Rs 520 for the later part of the year. Here it was almost
+   constant and seems to converge.
+
+3. SBI Stock shows mutiple MTOPS over the period of 1 year followed by strong downward trend.
+
+4. SBI has high volatility, it shows erratic upward and downward movement through out the year.
+   
 
 ```{eval=FALSE}
 
@@ -250,7 +268,12 @@ theme(legend.position="none")
 ```
 <img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/Vol2/Images/Axis_SBI.png" width="400" height="300">
 
-Explanation
+1. Both the Stocks BOB and Canara shows similar price movement through out the year.
+   both of them declined from oct 2016 to mid of Jan 2017 and then shown improvement
+   till April. But After April both the stocks were on opposite directions. Canara went
+   northwards, where as BOB went southward.
+
+2. BOB shows W Bottoms in Jan 2017 and April followed with strong upward movement.
 
 
 ##################################################################### Prediction############################################
