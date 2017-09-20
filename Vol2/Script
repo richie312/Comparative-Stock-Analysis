@@ -61,7 +61,7 @@ Master_Data$Date<-as.Date(Master_Data$Date)
 
 #########################   Bollinger Band  ############################
 
-## Visualisation of Bollinger Band
+## Store the Start and end Date in "Start" and "End" variable respectively
 
 end<-ymd("2017-09-01")
 start<-ymd("2016-09-01")
