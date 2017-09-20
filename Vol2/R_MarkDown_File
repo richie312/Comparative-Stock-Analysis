@@ -1,0 +1,43 @@
+## Comparative Stock Analysis Volume - II
+
+ ###Introduction
+   If you are interested in intra trading or you want to know or identify patterns in stock market, this article is for you. In last 
+   post, Descriptive analysis was provided for comparative analysis on stocks. In this post, emphasis is given on identifying patterns
+   in order to know how a stock behaves which is very important for stock trading. Later part of the article will show how to predict
+   stock prices using "forecast" package using the conventional ARIMA (Auto-Regressive Intensive Moving Average Method) methodolgy from 
+   Time Series Analysis.
+   
+   #### Identifying Patterns
+       
+       #### Bollinger Band
+            
+            The Bollinger Band was introduce by John Bollinger in 1980s, the Band shows the volatility of stock. Volatility is based
+            on standard deviation, which changes as volatility increases or decreases. The Volatility bands are placed above and below
+            the moving average line. The wider the gap between the bands, higher is the degree of volatility. On the other hand, as the 
+            wideness within the band decreases, lower is the degree of volatility of the stock. At times, the wideness within the band is
+            constant over a period of time, which shows the constant behaviour of a certain stock over the period of time.
+            
+            There are three lines in the  Bollinger Band,
+            
+            Bollinger Bands consist of:
+
+             * The middle line with N-period moving average (MA);
+                20-day SMA 
+             
+             * An upper band at K times an N-period standard deviation above the moving average;
+               20-day SMA + (20-day standard deviation of price x 2)  
+               
+             * A lower band at K times an N-period standard deviation below the moving average;
+                20-day SMA - (20-day standard deviation of price x 2)
+                
+             Note: SMA is Simple Moving Average, K and N period is ususally set at 20 days. Standard deviation is taken for 20 days.
+                   The upper and lower band are placed 2 units above and below respectively.
+                   
+             Below image is the typical example for Bollinger Band. This shows the volatility of Axis Bank stock for the period of
+             1 year from 1st Spetember, 2016 to 1st September, 2017. The gap was higher in the months of September till December.
+             
+             
+<img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/Vol2/Images/Bollinger_Band.png" width="400" height="300">
+
+    
+                   
