@@ -1,15 +1,27 @@
 ## Comparative Stock Analysis Volume - II
 
  ###Introduction
-   If you are interested in intra trading or you want to know or identify patterns in stock market, this article is for you. In last 
-   post, Descriptive analysis was provided for comparative analysis on stocks. In this post, emphasis is given on identifying patterns
+   
+   If you are interested in intra day trading or you want to know or identify patterns in stock market, this article is for you. In last 
+   Descriptive analysis was provided for comparative analysis on stocks. In this post, emphasis is given on identifying patterns
    in order to know how a stock behaves which is very important for stock trading. Later part of the article will show how to predict
    stock prices using "forecast" package using the conventional ARIMA (Auto-Regressive Intensive Moving Average Method) methodolgy from 
    Time Series Analysis.
    
-   #### Identifying Patterns
+   ### Setting up the System
+   
+       ####Required Packages
+
+           * Quandl             Data Download
+           * timetk             To coerce the dataframe into xts
+           * tidyverse          Use of tibble to group and perform single operation on multiple groups
+           * tidyquant          Time Series and Financial functions to perform the analysis
+           * forecast           Time Series Analysis
+           * stringr            For string use  
+
+        ### Getting Started with Comparative Analysis of Stocks Vol-II
        
-       #### Bollinger Band
+          #### Bollinger Band
             
             The Bollinger Band was introduce by John Bollinger in 1980s, the Band shows the volatility of stock. Volatility is based
             on standard deviation, which changes as volatility increases or decreases. The Volatility bands are placed above and below
@@ -39,5 +51,217 @@
              
 <img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/Vol2/Images/Bollinger_Band.png" width="400" height="300">
 
+
+   #### Trading with Bollinger Bands
+   
+       In this section, we will discuss few aspects of Bollinger Band. This information can be used in different stock trading.
+       
+        * If an uptrend is strong, then stock touches the upper band on regular basis and remain above the middle line.
+          This signals the strong movement towards North.
+        * If downtrend is strong, then stong touches the lower band on regular basis and remain below the middle line. This
+          signals strong southward movement.
+        * During the upward trend the price should not be below the lower band otherwise its signalling the reverse movement.
+        * During the downward trend, if the price move above the upper band then it signals Northward movement.
+        
+    The study will discuss the above points along with the identification of popular patterns like "W - Bottoms" & "M - Tops" in
+    bollinger band.
     
+    ### Keep it Clean!
+        
+        We will keep the data clean with tidyverse. In this section we will first download the data with the help of Quandl package
+        and then manipulate the dataframe with tidyverse to get our desired dataset,
+     
+     
+```{r,eval=FALSE}
+## Required Packages
+library(Quandl)
+library(tidyverse)
+library(tidyquant)
+library(timetk)
+library(forecast)
+library(gridExtra)
+```
+
+#### Code Break up for Quandl and Quandl API key,
+
+Please read my previous post on [Comparative Stock Analysis Vol - I](https://www.analyticsvidhya.com/blog/2017/09/comparative-stock-analysis/)
+
+```{r,eval=FALSE}
+## Setup the Quandl Free Acount and API Key, Please copy and paste the API key in order to #authinticate
+
+Quandl.api_key("xRPW5yp-5pmJCQZqgNVN")
+
+## Download the data Set
+ICICI = Quandl("NSE/ICICIBANK",collapse="daily",start_date="2016-09-01",type="raw")
+PNB= Quandl("NSE/PNB",collapse="daily",start_date="2016-09-01",type="raw")
+Axis=Quandl("NSE/AXISBANK",collapse="daily",start_date="2016-09-01",type="raw")
+Canara=Quandl("NSE/CANBK",collapse="daily",start_date="2016-09-01",type="raw")
+BOB=Quandl("NSE/BANKBARODA",collapse="daily",start_date="2016-09-01",type="raw")
+SBI=Quandl("NSE/SBIN",collapse="daily",start_date="2016-09-01",type="raw")
+
+## Add another ("Stock") coloumn in Datasets using cbind command
+
+ICICI<-cbind(ICICI,Stock="")
+PNB<-cbind(PNB,Stock="")
+Axis<-cbind(Axis,Stock="")
+SBI<-cbind(SBI,Stock="")
+Canara<-cbind(Canara,Stock="")
+BOB<-cbind(BOB,Stock="")
+
+## Paste the stock name in stock coloumn
+
+ICICI$Stock<-paste(ICICI$Stock,"ICICI",sep="")
+PNB$Stock<-paste(PNB$Stock,"PNB",sep="")
+Axis$Stock<-paste(Axis$Stock,"Axis",sep="")
+SBI$Stock<-paste(SBI$Stock,"SBI",sep="")
+Canara$Stock<-paste(Canara$Stock,"Canara",sep="")
+BOB$Stock<-paste(BOB$Stock,"BOB",sep="")
+
+## Consolidate under one dataset
+
+Master_Data<-rbind(ICICI,PNB,Axis,SBI,Canara,BOB)  
+
+## Coerce the Date variable into as.Date from character
+
+Master_Data$Date<-as.Date(Master_Data$Date)
+
+end<-ymd("2017-09-01")
+start<-ymd("2016-09-01")
+
+Master_Data<-Master_Data%>%
+  tibble::as_tibble() %>%
+group_by(Stock)
+```
+
+### Identification of Patterns
+ 
+    #### Signal W - Bottoms
+    
+         A “W-Bottom” forms in a downtrend and involves two reaction lows. 
+         In particular, Bollinger looks for W-Bottoms where the second low is lower than the first but holds above the lower band.
+         There are four steps to confirm Bollinger "W - Bottoms",
+         
+         *  First, a reaction low forms. This low is usually,below the lower band (Not Always).
+         *  Secondly, there is a bounce towards the middle band.
+         *  Thirdly, there is a new price low in the security. This low holds above the lower band.
+         *  Fourth, the pattern is confirmed with a strong move off the second low and a resistance break.
+         
+         Below image is the "W-Bottoms" identification for BOB (Bank of Baroda). Both of the W-Bottoms are followed by strong 
+         northward move in february and May, 2017 respectively.
+         
+<img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/W-Bottom_BOB.png" width="400" height="300">
+
+     #### Signal: M-Tops
+     
+           An M-Top is similar to a double top. M-Tops are reversal signals from upward trend into a downward trend.
+           The first high can be higher or lower than the second high. Initially there is a wave higher, which gets close to or
+           move above the upper band. Then price will move downward to middle band and then continues northward journey, might or might
+           not touch the upper band (at times it goes above the previous high) and then does not close above the upper band.
+       
+           Bollinger suggests looking for signs of non-confirmation when a security is making new highs.A non-confirmation occurs 
+           with three steps. 
+           
+            * First, a security creates a reaction high above the upper band. 
+            * Second, there is a pullback towards the middle band. 
+            * Third, prices move above the prior high but fail to reach the upper band. This is a warning sign. 
+              The inability of the second reaction high to reach the upper band shows waning momentum, which can foreshadow a 
+              trend reversal. Final confirmation comes with a support break or bearish indicator signal. 
+         
+         Below is the image for MTOPS signal for SBI (State Bank Of India) stock in NSE over the period of one year starting from
+         1st sept, 2016 to 1st sept, 2017. Each of the MTops are followed by decline in prices in the months of Nov-Dec, May and August.
+       
+          
+<img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/Vol2/Images/SBI_MTOPS.png" width="400" height="300">
+
+         ###  Volatility of Bank Stocks
+         
+         Let us visualise the volatility (gap between the upper and lower band) and also try to identify the patterns / signals
+         in our six selected bank stocks.
+  
+ ```{eval=FALSE}
+ ## Visualisation of BBand in ggplot2 
+ 
+ Master_Data%>%filter(Stock=="ICICI"|Stock=="PNB")%>%ggplot(aes(x=Date,y=Close))+
+    geom_line(size=1)+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=0.75,
+		color_ma = "royalblue4", color_bands = "red1")+
+    coord_x_date(xlim = c(start, end), expand = TRUE)+
+    facet_wrap(~ Stock, scales = "free_y")+
+    labs(title = "Bollinger Band", x = "Date",y="Price") +
+  theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
+        ,panel.background = element_rect(fill = 'lightyellow')
+        ,panel.grid.minor = element_blank(),
+        ,panel.grid.major = element_blank()
+        ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
+        ,axis.title = element_text(size = 18, color = '#555555')
+        ,axis.title.y = element_text(hjust=0.5,size=15)
+        ,axis.title.x = element_text(hjust = 0.5,size=15)
+        ) +
+theme(legend.position="none")
+```
+<img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/Vol2/Images/ICICI_PNB.png" width="400" height="300">
+
+
+Explanation
+
+
+```{eval=FALSE}
+Master_Data%>%filter(Stock=="Axis"|Stock=="SBI")%>%ggplot(aes(x=Date,y=Close))+
+    geom_line(size=1)+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=0.75,
+		color_ma = "royalblue4", color_bands = "red1")+
+    coord_x_date(xlim = c(start, end), expand = TRUE)+
+    facet_wrap(~ Stock, scales = "free_y")+
+    labs(title = "Bollinger Band", x = "Date",y="Price") +
+  theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
+        ,panel.background = element_rect(fill = 'lightyellow')
+        ,panel.grid.minor = element_blank(),
+        ,panel.grid.major = element_blank()
+        ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
+        ,axis.title = element_text(size = 18, color = '#555555')
+        ,axis.title.y = element_text(hjust=0.5,size=15)
+        ,axis.title.x = element_text(hjust = 0.5,size=15)
+        ) +
+theme(legend.position="none")
+```
+<img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/Vol2/Images/Axis_SBI.png" width="400" height="300">
+
+Explanation
+
+```{eval=FALSE}
+
+Master_Data%>%filter(Stock=="Canara"|Stock=="BOB")%>%ggplot(aes(x=Date,y=Close))+
+    geom_line(size=1)+
+    geom_bbands(aes(high = High, low = Low, close = Close), ma_fun = SMA, sd=2,n = 20,size=0.75,
+		color_ma = "royalblue4", color_bands = "red1")+
+    coord_x_date(xlim = c(start, end), expand = TRUE)+
+    facet_wrap(~ Stock, scales = "free_y")+
+    labs(title = "Bollinger Band", x = "Date",y="Price") +
+  theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
+        ,panel.background = element_rect(fill = 'lightyellow')
+        ,panel.grid.minor = element_blank(),
+        ,panel.grid.major = element_blank()
+        ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
+        ,axis.title = element_text(size = 18, color = '#555555')
+        ,axis.title.y = element_text(hjust=0.5,size=15)
+        ,axis.title.x = element_text(hjust = 0.5,size=15)
+        ) +
+theme(legend.position="none")
+```
+<img src="https://github.com/richie312/Comparative-Stock-Analysis/blob/master/Vol2/Images/Axis_SBI.png" width="400" height="300">
+
+Explanation
+
+
+##################################################################### Prediction############################################
+
+
+
+
+
+         
+         
+
+        
+        
                    
