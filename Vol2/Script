@@ -13,10 +13,6 @@
 ## Prediction of Stock Prices using "timetk" package
 	http://www.business-science.io/code-tools/2017/07/09/sweep-0-1-0.html
 
-
-
-
-
 ## call the necessary packages
 library(tidyverse)
 library(tidyquant)
@@ -139,6 +135,82 @@ grid.arrange(Plot1,Plot2,Plot3,ncol = 1, nrow = 3)
 https://www.investoo.com/w-bottom-m-tops-strategy/
 
 http://traderhq.com/ultimate-guide-to-bollinger-bands/
+
+
+####################### Prediction using Forecast #############################
+
+## Select only varaibles "Date" and "Close"
+
+Master_Data<-Master_Data%>%
+  tibble::as_tibble() %>%
+group_by(Stock)%>%select("Date","Close")
+
+## Convert the dataframe in ts using timetk package
+
+ICICI_1<-Master_Data%>%filter(Stock=="ICICI")%>%
+		    select("Date","Close")
+
+## Drop the Stock variable
+ICICI_1<-ICICI_1[-1]
+
+# Convert it to the time series class using timetk package
+
+ICICI_TS<-ICICI_1%>%
+		tk_ts(start = 2016, freq = 1, silent = TRUE)
+## Auto ARIMA
+
+ICICI_Arima <- auto.arima(ICICI_TS)
+sw_glance(ICICI_Arima)
+
+## Forecast
+
+ICICI_Forecast <- forecast(ICICI_Arima, h = 12)
+
+## Data Wrangling using sweep
+
+ICICI_sweep <- sw_sweep(ICICI_Forecast, timekit_idx = TRUE, rename_index = "date")
+ICICI_sweep
+
+## Visualisation with ggplot
+
+
+ICICI_sweep %>%
+    ggplot(aes(x = date, y = Close, color = key)) +
+    # Prediction intervals
+    geom_ribbon(aes(ymin = lo.95, ymax = hi.95), 
+                fill = "#D5DBFF", color = NA, size = 0) +
+    geom_ribbon(aes(ymin = lo.80, ymax = hi.80, fill = key), 
+                fill = "#596DD5", color = NA, size = 0, alpha = 0.8) +
+    # Actual & Forecast
+    geom_line(size = 1) + 
+    geom_point(size = 2) +
+    # Aesthetics
+    theme_tq(base_size = 16) +
+    scale_color_tq() +
+    labs(title = "ICICI Close Price, Prediction for 12 months", x = "", y = "Price. Rs") 
+
+
+
+## Date format
+
+ICICI_TS<-as.xts(ICICI_1$Date,as.POSIXct(ICICI_1$Date, format="%Y-%m-%d")
+ICICI_TS<-ICICI_1%>%as.ts(start = "2016-09-01", end="2017-09-01",freq = 1, silent = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
