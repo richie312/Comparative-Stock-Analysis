@@ -193,8 +193,8 @@ ICICI_sweep %>%
 
 ## Date format
 
-ICICI_TS<-as.xts(ICICI_1$Date,as.POSIXct(ICICI_1$Date, format="%Y-%m-%d")
-ICICI_TS<-ICICI_1%>%as.ts(start = "2016-09-01", end="2017-09-01",freq = 1, silent = TRUE)
+ICICI_1$Date<-as.xts(ICICI_1$Date,as.POSIXct(ICICI_1$Date, format="%Y%m%d")
+ICICI_TS$Date<-ICICI_1%>%as.ts(start = "2016-09-01", end="2017-09-01",freq = 12, silent = TRUE)
 
 
 
