@@ -189,27 +189,47 @@ ICICI_sweep %>%
     scale_color_tq() +
     labs(title = "ICICI Close Price, Prediction for 12 months", x = "", y = "Price. Rs") 
 
+######################## Alternative Forecast Model
+
+## Convert the PNB Data Set into df for regression model
+
+PNB_df=as.data.frame(PNB)
+colnames(PNB_df)<-c("Open","High","Low","Last","Close","TTQ","Turnover")
+
+## Change the scale of Trade quantity
+
+PNB_df$TTQ<-PNB_df$TTQ/100000
 
 
-## Date format
+m1=lm(PNB_df$Close~PNB_df$High+PNB_df$Low+PNB_df$TTQ)
 
-ICICI_1$Date<-as.xts(ICICI_1$Date,as.POSIXct(ICICI_1$Date, format="%Y%m%d")
-ICICI_TS$Date<-ICICI_1%>%as.ts(start = "2016-09-01", end="2017-09-01",freq = 12, silent = TRUE)
-
+p1=predict(m1,interval="predict")
 
 
+## Select variable "Close" for both the stocks from time series dataformat
+
+Axis<-Axis[,"Close"]
+PNB<-PNB[,"Close"]
+
+## Forecast using ARIMA to take out the seasonality and cyclic part of the stock
+
+m2=arima(diff(PNB),order=c(1,0,0))
+
+p2=predict(m2,n.ahead=3)
+p2.df=as.data.frame(p2)
+p1.df=as.data.frame(p1)
+p1.df=p1.df[1:3,]
+p1.df$fit=p1.df$fit+p2.df$pred
 
 
+## Visualisation
 
-
-
-
-
-
-
-
-
-
+ggplot(data=PNB_raw,aes(x=Date, y =Close)) +
+  # Prediction intervals
+  geom_ribbon(data=p1.df,aes(ymin =lwr, ymax = upr), 
+              fill = "#D5DBFF", color = NA, size = 0)+
+  geom_line(size = 1) + 
+  geom_point(size = 2)
 
 
 
