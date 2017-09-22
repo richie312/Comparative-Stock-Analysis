@@ -222,14 +222,57 @@ p1.df=p1.df[1:3,]
 p1.df$fit=p1.df$fit+p2.df$pred
 
 
+## Get the PNB Dtataframe
+
+PNB_df<-PNB%>%select("Date","Close")
+
+## Create the date df for next three months
+
+date<-as.data.frame(as.Date(c("2017-10-31","2017-11-30","2017-12-31")))
+colnames(date)=c("date")
+
+
+## Modify the predict dataset and add "key" variable
+p1.df<-cbind(p1.df,date)
+p1.df["Key"]<-"Predicted"
+p1.df<-p1.df[,c("date","fit","lwr","upr","Key")]
+
+## Rename the columns
+colnames(p1.df)<-c("Date","Close","lwr","upr","Key")
+
+## Modify the PNB_df dataset
+
+PNB_df<-PNB%>%select("Date","Close")
+
+var<-c("lwr","upr")
+
+PNB_df[var]<-NA
+
+PNB_df["Key"]<-"Actual"
+
+## Rbind fit and main PNB data frame
+
+PNB_com=rbind(p1.df,PNB_df)
+PNB_com$Date<-as.Date(PNB_com$Date)
+
+
 ## Visualisation
 
-ggplot(data=PNB_raw,aes(x=Date, y =Close)) +
+ggplot(data=PNB_com,aes(x= Date, y =Close,color=Key)) +
   # Prediction intervals
-  geom_ribbon(data=p1.df,aes(ymin =lwr, ymax = upr), 
-              fill = "#D5DBFF", color = NA, size = 0)+
+ geom_ribbon(aes(ymin = lwr, ymax = upr, fill = green4), 
+             fill = "green4", size = 0, alpha = 1)+
   geom_line(size = 1) + 
-  geom_point(size = 2)
+  geom_point(size = 2)+
+  theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
+        ,panel.background = element_rect(fill = 'lightyellow')
+        ,panel.grid.minor = element_blank(),
+        ,panel.grid.major = element_blank()
+        ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
+        ,axis.title = element_text(size = 18, color = '#555555')
+        ,axis.title.y = element_text(hjust=0.5,size=15)
+        ,axis.title.x = element_text(hjust = 0.5,size=15)
+        )
 
 
 
