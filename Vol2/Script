@@ -140,35 +140,38 @@ http://traderhq.com/ultimate-guide-to-bollinger-bands/
 
 ## Convert the PNB Data Set into df for regression model
 
-PNB_df=as.data.frame(PNB)
-colnames(PNB_df)<-c("Open","High","Low","Last","Close","TTQ","Turnover")
+PNB_df=PNB_raw
+Axis_df=Axis_raw
+colnames(PNB_df)<-c("Date","Open","High","Low","Last","Close","TTQ","Turnover")
+colnames(Axis_df)<-c("Date","Open","High","Low","Last","Close","TTQ","Turnover")
 
 ## Change the scale of Trade quantity
 
 PNB_df$TTQ<-PNB_df$TTQ/100000
+Axis_df$TTQ<-Axis_df$TTQ/100000
+
 
 ## Regression Model m1 for PNB and m3 for Axis
 m1=lm(PNB_df$Close~PNB_df$High+PNB_df$Low+PNB_df$TTQ)
-m3=lm(Axis$Close~Axis$High+Axis$Low+Axis$TTQ)
-p1=as.data.frame(predict(m1,interval="predict"))
-p3=as.data.frame(predict(m3, interval="predict"))
-
-## Select variable "Close" for both the stocks from time series dataformat
-
-Axis<-Axis[,"Close"]
-PNB<-PNB[,"Close"]
+m3=lm(Axis_df$Close~Axis_df$High+Axis_df$Low+Axis_df$TTQ)
+p1.df=as.data.frame(predict(m1,interval="predict"))
+p3.df=as.data.frame(predict(m3, interval="predict"))
 
 ## Forecast using ARIMA to take out the seasonality and cyclic part of the stock
 
-m2=arima(diff(PNB),order=c(1,0,0))
-m4=arima(diff(Axis),order=c(1,0,0))
-p2=as.data.frame(predict(m2,n.ahead=3))
-p4=as.dataframe(predict(m4,n.ahead=4))
+m2=arima(diff(PNB_df$close),order=c(1,0,0))
+m4=arima(diff(Axis_df$Close),order=c(1,0,0))
+p2.df=as.data.frame(predict(m2,n.ahead=3))
+p4.df=as.data.frame(predict(m4,n.ahead=3))
 
-## Combining the Random and Stock Function together
+## Combining the Random and Stock  together
 
 p1.df=p1.df[1:3,]
 p1.df$fit=p1.df$fit+p2.df$pred
+p3.df=p3.df[1:3,]
+p3.df$fit=p3.df$fit+p4.df$pred
+
+
 
 ## Create the date df for next three months
 
