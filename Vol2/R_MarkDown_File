@@ -284,10 +284,170 @@ theme(legend.position="none")
      * [Stock Charts School](http://stockcharts.com/articles/dont_ignore_this_chart/2017/09/bp-bp-breaks-out-to-new-two-year-highs.html)
      
    
+## Prediction
 
-##################################################################### Prediction############################################
+#### Prediction of Stock Prices
+
+	In this section, we will predict the prices for two selected bank PNB and Axis Bank. In stock market, generally the prices
+	are dynamic and depends on various factors like news, weather, public policy, interest rate. It is difficult to predict the 
+	stock price behaviour as it depends on lots of factor. In order to get more accuracy in prediction, we've used two different 
+	approach to come to prediction.
+	
+	* Regression Approach
+	 In the last post, we have seen that the stock prices is also dependent on the traded quantity, but direction can be either ways.
+	 In our analysis, we will take consideration of these movements.
+	 
+	 * ARIMA (Auto Regressive Intensive Moving Average)
+	 We will also analyse the random part of the stock price movement, so called white noise and will include in our prediction model.
+	 
+	There is also available study on white noise on Analytics Vidya (Tavish Srivastava). Please click [here](https://www.analyticsvidhya.com/blog/2015/12/complete-tutorial-time-series-modeling/) 
+	to get more information.
+	 
+	The following points are the steps to arrive at Predictions
+	
+		* Download the dataset in mothly format from Quandl
+		* Build the regresssion Model "m1" & "m3"
+		* Build the ARIMA model "p2.df" & "p4.df"
+		* Combine the regression and Arima model together "p1.df" & "p3.df"
+		* Prediction dataset has parameter like Close Price, Confidence intervals ("lwr(lower)" & "upr(Upper)", Key (Prediciton/Actual)
+		* Add Date variable in the predcition dataset for three months "october", "November" & "December".
+		* Reorder the columns of Prediction Datasets.
+		* Modification of the Actual Datasets for Axis and PNB; keep only Date and Close price by using dplyr package.
+		* Add the variables like Confidence interval ("lwr" & "upr"), "Key"
+		* Combine Both the dataset Prediction and Actual into new dataframe like "Axis_com"
+		* Apply ggplot for the both the dataset
+		* use gridExtra package to arrange the plots.
+		
+	Note: ggplot shows the prediction and actual prices. Predcition prices has the band for lower and upper limit.
+	
+	```{eval=FALSE}
+	## Download the data Set
+PNB = Quandl("NSE/ICICIBANK",collapse="monthly",start_date="2016-09-01",type="raw")
+Axis=Quandl("NSE/AXISBANK",collapse="monthly",start_date="2016-09-01",type="raw")
+
+## Convert the PNB & Axis Data Set into df for regression model
+
+PNB_df=PNB
+Axis_df=Axis
+colnames(PNB_df)<-c("Date","Open","High","Low","Last","Close","TTQ","Turnover")
+colnames(Axis_df)<-c("Date","Open","High","Low","Last","Close","TTQ","Turnover")
+
+## Change the scale of Trade quantity
+
+PNB_df$TTQ<-PNB_df$TTQ/100000
+Axis_df$TTQ<-Axis_df$TTQ/100000
+
+## Regression models
+
+m1=lm(PNB_df$Close~PNB_df$High+PNB_df$Low+PNB_df$TTQ)
+
+p1.df=as.data.frame(predict(m1,interval="predict"))
+
+m3=lm(Axis_df$Close~Axis_df$High+Axis_df$Low+Axis_df$TTQ)
+
+p3.df=as.data.frame(predict(m3, interval="predict"))
+
+## Forecast using ARIMA to take out the seasonality and cyclic part of the stock
+
+m2=arima(diff(PNB_df$Close),order=c(1,0,0))
+m4=arima(diff(Axis_df$Close),order=c(1,0,0))
+p2.df=as.data.frame(predict(m2,n.ahead=3))
+p4.df=as.data.frame(predict(m4,n.ahead=3))
+
+## Combining the Random and Stock  together
+
+p1.df=p1.df[1:3,]
+p1.df$fit=p1.df$fit+p2.df$pred
+p3.df=p3.df[1:3,]
+p3.df$fit=p3.df$fit+p4.df$pred
+
+## Create the date df for next three months
+
+date<-as.data.frame(as.Date(c("2017-10-31","2017-11-30","2017-12-31")))
+colnames(date)=c("date")
+
+## Modify the predict dataset and add "key" variable for PNB
+
+p1.df<-cbind(p1.df,date)
+p1.df["Key"]<-"Predicted"
+p1.df<-p1.df[,c("date","fit","lwr","upr","Key")]
+
+## Modify the predict dataset for Axis and add variable "Key"
+
+p3.df<-cbind(p3.df,date)
+p3.df["Key"]<-"Predicted"
+p3.df<-p3.df[,c("date","fit","lwr","upr","Key")]
 
 
+## Rename the columns
+colnames(p1.df)<-c("Date","Close","lwr","upr","Key")
+colnames(p3.df)<-c("Date","Close","lwr","upr","Key")
+
+## Modify the PNB_df dataset
+
+PNB_df<-PNB%>%select("Date","Close")
+Axis_df<-Axis%>%select("Date","Close")
+
+## Add two variable for confidence interval "lwr" and "upr"
+var<-c("lwr","upr")
+
+PNB_df[var]<-NA
+Axis_df[var]<-NA
+
+## Add the Key variable for Actual data
+
+PNB_df["Key"]<-"Actual"
+Axis_df["Key"]<-"Actual"
+
+## Rbind the predicted and actual value for both of the Stocks
+
+PNB_com=rbind(PNB_df,p1.df)
+PNB_com$Date<-as.Date(PNB_com$Date)
+
+Axis_com=rbind(Axis_df,p3.df)
+Axis_com$Date<-as.Date(Axis_com$Date)
+
+## Visualisation
+
+PNB_Plot<-ggplot(data=PNB_com,aes(x= Date, y = Close,color=Key,label=Close)) +
+  # Prediction intervals
+  geom_ribbon(aes(ymin = lwr, ymax = upr, fill = Key), 
+              fill = "khaki2", size = 0)+
+  geom_line(size = 1.7) + 
+  geom_point(size = 2)+
+  labs(title = "Actual and Predicted Price, PNB", x = "Date",y="Price") +
+  theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
+        ,panel.background = element_rect(fill = "honeydew")
+        ,panel.grid.minor = element_blank()
+        ,panel.grid.major = element_blank()
+        ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
+        ,axis.title = element_text(size = 18, color = '#555555')
+        ,axis.title.y = element_text(hjust=0.5,size=15)
+        ,axis.title.x = element_text(hjust = 0.5,size=15))
+
+Axis_Plot<- ggplot(data=Axis_com,aes(x= Date, y = Close,color=Key,label=Close)) +
+  # Prediction intervals
+  geom_ribbon(aes(ymin = lwr, ymax = upr, fill = Key), 
+              fill = "khaki2", size = 0)+
+  geom_line(size = 1.7) + 
+  geom_point(size = 2)+
+  labs(title = "Actual and Predicted Price, Axis Bank", x = "Date",y="Price") +
+  theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
+        ,panel.background = element_rect(fill = "honeydew")
+        ,panel.grid.minor = element_blank()
+        ,panel.grid.major = element_blank()
+        ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
+        ,axis.title = element_text(size = 18, color = '#555555')
+        ,axis.title.y = element_text(hjust=0.5,size=15)
+        ,axis.title.x = element_text(hjust = 0.5,size=15))
+
+## Plots
+
+grid.arrange(PNB_Plot,Axis_Plot,ncol = 1, nrow = 2)
+```
+<img src="C:\Users\ACER PC\Documents\R_Projects\Bank_Stock_Comparative_Analysis\Sp.jpeg" width="400" height="700">
+
+	
 
 
 
