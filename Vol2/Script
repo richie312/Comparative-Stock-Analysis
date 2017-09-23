@@ -138,10 +138,14 @@ http://traderhq.com/ultimate-guide-to-bollinger-bands/
 
 ################################################ Forecast Model
 
-## Convert the PNB Data Set into df for regression model
+## Download the data Set
+PNB = Quandl("NSE/ICICIBANK",collapse="monthly",start_date="2016-09-01",type="raw")
+Axis=Quandl("NSE/AXISBANK",collapse="monthly",start_date="2016-09-01",type="raw")
 
-PNB_df=PNB_raw
-Axis_df=Axis_raw
+## Convert the PNB & Axis Data Set into df for regression model
+
+PNB_df=PNB
+Axis_df=Axis
 colnames(PNB_df)<-c("Date","Open","High","Low","Last","Close","TTQ","Turnover")
 colnames(Axis_df)<-c("Date","Open","High","Low","Last","Close","TTQ","Turnover")
 
@@ -150,16 +154,19 @@ colnames(Axis_df)<-c("Date","Open","High","Low","Last","Close","TTQ","Turnover")
 PNB_df$TTQ<-PNB_df$TTQ/100000
 Axis_df$TTQ<-Axis_df$TTQ/100000
 
+## Regression models
 
-## Regression Model m1 for PNB and m3 for Axis
 m1=lm(PNB_df$Close~PNB_df$High+PNB_df$Low+PNB_df$TTQ)
-m3=lm(Axis_df$Close~Axis_df$High+Axis_df$Low+Axis_df$TTQ)
+
 p1.df=as.data.frame(predict(m1,interval="predict"))
+
+m3=lm(Axis_df$Close~Axis_df$High+Axis_df$Low+Axis_df$TTQ)
+
 p3.df=as.data.frame(predict(m3, interval="predict"))
 
 ## Forecast using ARIMA to take out the seasonality and cyclic part of the stock
 
-m2=arima(diff(PNB_df$close),order=c(1,0,0))
+m2=arima(diff(PNB_df$Close),order=c(1,0,0))
 m4=arima(diff(Axis_df$Close),order=c(1,0,0))
 p2.df=as.data.frame(predict(m2,n.ahead=3))
 p4.df=as.data.frame(predict(m4,n.ahead=3))
@@ -170,8 +177,6 @@ p1.df=p1.df[1:3,]
 p1.df$fit=p1.df$fit+p2.df$pred
 p3.df=p3.df[1:3,]
 p3.df$fit=p3.df$fit+p4.df$pred
-
-
 
 ## Create the date df for next three months
 
@@ -211,51 +216,52 @@ Axis_df[var]<-NA
 PNB_df["Key"]<-"Actual"
 Axis_df["Key"]<-"Actual"
 
-## Rbind the predicted and actual value for both the Stocks
+## Rbind the predicted and actual value for both of the Stocks
 
-PNB_com=rbind(p1.df,PNB_df)
+PNB_com=rbind(PNB_df,p1.df)
 PNB_com$Date<-as.Date(PNB_com$Date)
 
-Axis_com=rbind(p3.df,Axis_df)
+Axis_com=rbind(Axis_df,p3.df)
 Axis_com$Date<-as.Date(Axis_com$Date)
 
 ## Visualisation
 
 PNB_Plot<-ggplot(data=PNB_com,aes(x= Date, y = Close,color=Key,label=Close)) +
   # Prediction intervals
- geom_ribbon(aes(ymin = lwr, ymax = upr, fill = Key), 
-             fill = "green4", size = 2, alpha = 1)+
-  geom_line(size = 1.5) + 
+  geom_ribbon(aes(ymin = lwr, ymax = upr, fill = Key), 
+              fill = "khaki2", size = 0)+
+  geom_line(size = 1.7) + 
   geom_point(size = 2)+
-  labs(title = "Actual and Predicted Price", x = "Date",y="Price") +
+  labs(title = "Actual and Predicted Price, PNB", x = "Date",y="Price") +
   theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
-        ,panel.background = element_rect(fill = "darkseagreen1")
-        ,panel.grid.minor = element_blank(),
+        ,panel.background = element_rect(fill = "honeydew")
+        ,panel.grid.minor = element_blank()
         ,panel.grid.major = element_blank()
         ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
         ,axis.title = element_text(size = 18, color = '#555555')
         ,axis.title.y = element_text(hjust=0.5,size=15)
         ,axis.title.x = element_text(hjust = 0.5,size=15))
-	
+
 Axis_Plot<- ggplot(data=Axis_com,aes(x= Date, y = Close,color=Key,label=Close)) +
   # Prediction intervals
- geom_ribbon(aes(ymin = lwr, ymax = upr, fill = Key), 
-             fill = "green4", size = 2, alpha = 1)+
-  geom_line(size = 1.5) + 
+  geom_ribbon(aes(ymin = lwr, ymax = upr, fill = Key), 
+              fill = "khaki2", size = 0)+
+  geom_line(size = 1.7) + 
   geom_point(size = 2)+
-  labs(title = "Actual and Predicted Price", x = "Date",y="Price") +
+  labs(title = "Actual and Predicted Price, Axis Bank", x = "Date",y="Price") +
   theme(text = element_text(family = 'Gill Sans', color = "#444444",hjust=0.5)
-        ,panel.background = element_rect(fill = "darkseagreen1")
-        ,panel.grid.minor = element_blank(),
+        ,panel.background = element_rect(fill = "honeydew")
+        ,panel.grid.minor = element_blank()
         ,panel.grid.major = element_blank()
         ,plot.title = element_text(size = 20,hjust=0.5,colour="orangered4")
         ,axis.title = element_text(size = 18, color = '#555555')
         ,axis.title.y = element_text(hjust=0.5,size=15)
         ,axis.title.x = element_text(hjust = 0.5,size=15))
-	
+
 ## Plots
 
 grid.arrange(PNB_Plot,Axis_Plot,ncol = 1, nrow = 2)
+
 
 ###################################### End ########################################################
 	
